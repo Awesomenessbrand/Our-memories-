@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Memories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0d1117;
+      --navy2:   #141b26;
+      --gold:    #c9a84c;
+      --gold-lt: #e8c96e;
+      --blush:   #e8b4b8;
+      --cream:   #f5ede0;
+      --muted:   #7a8a9a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      color: var(--cream);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(201,168,76,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-weight: 300;
+      font-size: 0.85rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.3s forwards;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 8vw, 6rem);
+      font-weight: 400;
+      line-height: 1.1;
+      color: var(--cream);
+      margin-bottom: 1.2rem;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.6s forwards;
+    }
+    .hero-title em { font-style: italic; color: var(--gold-lt); }
+    .hero-sub {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: 300;
+      color: var(--blush);
+      letter-spacing: 0.05em;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.9s forwards;
+    }
+    .hero-scroll {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      opacity: 0; animation: fadeUp 1s ease 1.3s forwards; cursor: pointer;
+    }
+    .hero-scroll span { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line {
+      width: 1px; height: 48px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollPulse 2s ease-in-out 2s infinite;
+    }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      position: relative;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 8rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%; top: 0; bottom: 0;
+      width: 1px;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, transparent 0%, rgba(201,168,76,0.55) 8%, rgba(201,168,76,0.55) 92%, transparent 100%);
+      box-shadow: 0 0 12px 2px rgba(201,168,76,0.18);
+    }
+
+    /* ── MEMORY CARD ── */
+    .memory {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr;
+      align-items: start;
+      margin-bottom: 5rem;
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .memory.visible { opacity: 1; transform: translateY(0); }
+
+    .memory:nth-child(odd)  .card      { grid-column: 1; text-align: left; padding-right: 1.4rem; }
+    .memory:nth-child(odd)  .node      { grid-column: 2; }
+    .memory:nth-child(odd)  .date-side { grid-column: 3; padding-top: 0.6rem; padding-left: 1.2rem; }
+
+    .memory:nth-child(even) .card      { grid-column: 3; text-align: left; padding-left: 1.4rem; }
+    .memory:nth-child(even) .node      { grid-column: 2; }
+    .memory:nth-child(even) .date-side { grid-column: 1; grid-row: 1; text-align: right; padding-top: 0.6rem; padding-right: 1.2rem; }
+
+    .node {
+      display: flex; flex-direction: column; align-items: center;
+      padding-top: 0.5rem; z-index: 2;
+    }
+    .node-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--navy);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 10px 3px rgba(201,168,76,0.4);
+      flex-shrink: 0;
+      transition: box-shadow 0.4s ease;
+    }
+    .memory.visible .node-dot { box-shadow: 0 0 18px 5px rgba(201,168,76,0.55); }
+
+    /* Card */
+    .card {
+      background: var(--navy2);
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: border-color 0.4s, box-shadow 0.4s;
+      cursor: pointer;
+    }
+    .card:hover { border-color: rgba(201,168,76,0.45); box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+
+    /* Photo area */
+    .card-photo {
+      width: 100%;
+      aspect-ratio: 4/3;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-photo img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.8) brightness(0.9);
+      transition: filter 0.5s;
+    }
+    .card:hover .card-photo img { filter: saturate(1) brightness(1); }
+
+    /* Upload placeholder */
+    .upload-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, #1a2235 0%, #0f1620 100%);
+      transition: background 0.3s;
+      position: relative;
+    }
+    .card:hover .upload-placeholder { background: linear-gradient(135deg, #1e2a40 0%, #131a28 100%); }
+
+    .upload-icon {
+      width: 42px; height: 42px;
+      border: 1.5px dashed rgba(201,168,76,0.5);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+      font-size: 1.2rem;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .card:hover .upload-icon { border-color: var(--gold); transform: scale(1.08); }
+
+    .upload-text {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Emoji fallback */
+    .card-emoji {
+      width: 100%;
+      aspect-ratio: 4/3;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem;
+      background: linear-gradient(135deg, #1a2235, #0f1620);
+    }
+
+    /* Hidden file input */
+    .file-input { display: none; }
+
+    .card-body { padding: 1rem 1.1rem 1.2rem; }
+    .card-label { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.35rem; }
+    .card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; color: var(--cream); margin-bottom: 0.4rem; line-height: 1.3; }
+    .card-desc  { font-size: 0.88rem; font-weight: 300; color: #a0aab8; line-height: 1.55; }
+
+    /* Editable fields */
+    [contenteditable] { outline: none; border-bottom: 1px dashed transparent; transition: border-color 0.2s; }
+    [contenteditable]:hover { border-color: rgba(201,168,76,0.3); }
+    [contenteditable]:focus { border-color: var(--gold); }
+
+    .date-side {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── ADD MEMORY BUTTON ── */
+    .add-memory-wrap {
+      text-align: center;
+      margin-top: 1rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s, transform 0.8s;
+    }
+    .add-memory-wrap.visible { opacity: 1; transform: translateY(0); }
+
+    .add-btn {
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 0.75rem 2rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .add-btn:hover { background: rgba(201,168,76,0.08); border-color: var(--gold); }
+
+    /* ── END FLOURISH ── */
+    .end-flourish {
+      text-align: center; padding: 2rem 1rem 6rem;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.9s, transform 0.9s;
+    }
+    .end-flourish.visible { opacity: 1; transform: translateY(0); }
+    .end-flourish .ornament { color: var(--gold); font-size: 1.8rem; letter-spacing: 0.4em; margin-bottom: 1rem; }
+    .end-flourish p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; color: var(--blush); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--navy2); border: 1px solid rgba(201,168,76,0.4);
+      color: var(--cream); font-size: 0.85rem; letter-spacing: 0.05em;
+      padding: 0.75rem 1.5rem; border-radius: 3px;
+      transition: transform 0.4s ease; z-index: 100;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Particles */
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle {
+      position: absolute; width: 2px; height: 2px; border-radius: 50%;
+      background: var(--gold); opacity: 0;
+      animation: drift var(--dur,12s) ease-in-out var(--delay,0s) infinite;
+    }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes scrollPulse { 0%,100%{opacity:.4;} 50%{opacity:1;} }
+    @keyframes drift {
+      0%   { opacity:0; transform:translate(0,0); }
+      10%  { opacity:0.6; }
+      90%  { opacity:0.3; }
+      100% { opacity:0; transform:translate(var(--dx,20px),-120vh); }
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .timeline::before { left: 20px; }
+      .memory { display: block; padding-left: 48px; position: relative; }
+      .node { position: absolute; left: 12px; top: 0.5rem; }
+      .memory:nth-child(odd) .card,
+      .memory:nth-child(even) .card { padding: 0; text-align: left; }
+      .date-side { text-align: left !important; padding: 0 0 0.5rem !important; font-size: 0.78rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .memory { transition: none; opacity: 1; transform: none; }
+      .particle { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">A collection of moments</p>
+  <h1 class="hero-title">Every memory<br><em>we've made</em></h1>
+  <p class="hero-sub">Scroll through the story of us</p>
+  <div class="hero-scroll" onclick="document.querySelector('.timeline').scrollIntoView({behavior:'smooth'})">
+    <span>Begin</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="timeline" id="timeline">
+
+  <div class="memory" data-id="1">
+    <div class="card" onclick="triggerUpload(1)">
+      <input type="file" accept="image/*" class="file-input" id="file-1" onchange="loadPhoto(event,1)">
+      <div class="card-photo" id="photo-1">
+        <div class="upload-placeholder">
+          <div class="upload-icon">＋</div>
+          <span class="upload-text">Tap to add photo</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-label">Chapter I</p>
+        <h2 class="card-title" contenteditable="true" title="Click to edit">The First Hello</h2>
+        <p class="card-desc" contenteditable="true" title="Click to edit">The moment everything quietly shifted. Neither of us knew it yet, but this was the beginning of something extraordinary.</p>
+      </div>
+    </div>
+    <div class="node"><div class="node-dot"></div></div>
+    <div class="date-side" contenteditable="true" title="Click to edit">Spring<br>2022</div>
+  </div>
+
+  <div class="memory" data-id="2">
+    <div class="card" onclick="triggerUpload(2)">
+      <input type="file" accept="image/*" class="file-input" id="file-2" onchange="loadPhoto(event,2)">
+      <div class="card-photo" id="photo-2">
+        <div class="upload-placeholder">
+          <div class="upload-icon">＋</div>
+          <span class="upload-text">Tap to add photo</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-label">Chapter II</p>
+        <h2 class="card-title" contenteditable="true" title="Click to edit">The Road Trip</h2>
+        <p class="card-desc" contenteditable="true" title="Click to edit">Windows down, music loud, nowhere to be. We laughed until the sky went pink and didn't want the drive to end.</p>
+      </div>
+    </div>
+    <div class="node"><div class="node-dot"></div></div>
+    <div class="date-side" contenteditable="true" title="Click to edit">Summer<br>2022</div>
+  </div>
+
+  <div class="memory" data-id="3">
+    <div class="card" onclick="triggerUpload(3)">
+      <input type="file" accept="image/*" class="file-input" id="file-3" onchange="loadPhoto(event,3)">
+      <div class="card-photo" id="photo-3">
+        <div class="upload-placeholder">
+          <div class="upload-icon">＋</div>
+          <span class="upload-text">Tap to add photo</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-label">Chapter III</p>
+        <h2 class="card-title" contenteditable="true" title="Click to edit">Our Quiet Autumn</h2>
+        <p class="card-desc" contenteditable="true" title="Click to edit">Cozy mornings, long walks through golden leaves, and learning each other's favourite things without even trying.</p>
+      </div>
+    </div>
+    <div class="node"><div class="node-dot"></div></div>
+    <div class="date-side" contenteditable="true" title="Click to edit">Autumn<br>2022</div>
+  </div>
+
+  <div class="memory" data-id="4">
+    <div class="card" onclick="triggerUpload(4)">
+      <input type="file" accept="image/*" class="file-input" id="file-4" onchange="loadPhoto(event,4)">
+      <div class="card-photo" id="photo-4">
+        <div class="upload-placeholder">
+          <div class="upload-icon">＋</div>
+          <span class="upload-text">Tap to add photo</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-label">Chapter IV</p>
+        <h2 class="card-title" contenteditable="true" title="Click to edit">First Winter Together</h2>
+        <p class="card-desc" contenteditable="true" title="Click to edit">Fairy lights and warm cups and the realisation that home isn't a place — it's who you're with.</p>
+      </div>
+    </div>
+    <div class="node"><div class="node-dot"></div></div>
+    <div class="date-side" contenteditable="true" title="Click to edit">December<br>2022</div>
+  </div>
+
+  <div class="memory" data-id="5">
+    <div class="card" onclick="triggerUpload(5)">
+      <input type="file" accept="image/*" class="file-input" id="file-5" onchange="loadPhoto(event,5)">
+      <div class="card-photo" id="photo-5">
+        <div class="upload-placeholder">
+          <div class="upload-icon">＋</div>
+          <span class="upload-text">Tap to add photo</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-label">Chapter V</p>
+        <h2 class="card-title" contenteditable="true" title="Click to edit">The Trip We Planned Forever</h2>
+        <p class="card-desc" contenteditable="true" title="Click to edit">Getting lost in a city we'd never been to, finding a little restaurant down an alley — it became our favourite story to tell.</p>
+      </div>
+    </div>
+    <div class="node"><div class="node-dot"></div></div>
+    <div class="date-side" contenteditable="true" title="Click to edit">Spring<br>2023</div>
+  </div>
+
+  <!-- Add memory button -->
+  <div class="add-memory-wrap" id="add-wrap">
+    <button class="add-btn" onclick="addMemory()">＋ &nbsp; Add a Memory</button>
+  </div>
+
+</section>
+
+<div class="end-flourish" id="end-flourish">
+  <div class="ornament">· · ·</div>
+  <p>And so many more to come.</p>
+</div>
+
+<div class="toast" id="toast">Photo added ✦</div>
+
+<script>
+  let memoryCount = 5;
+
+  // Trigger file picker — but only if not clicking on text
+  function triggerUpload(id) {
+    // Don't open file picker if user clicked on editable text
+    if (document.activeElement && document.activeElement.hasAttribute('contenteditable')) return;
+    document.getElementById('file-' + id).click();
+  }
+
+  // Load photo into card
+  function loadPhoto(event, id) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const photoDiv = document.getElementById('photo-' + id);
+    photoDiv.innerHTML = `<img src="${url}" alt="Memory photo" />`;
+    showToast('Photo added ✦');
+  }
+
+  // Add a new memory card
+  function addMemory() {
+    memoryCount++;
+    const id = memoryCount;
+    const chapterNums = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+    const chapterLabel = chapterNums[id - 1] || id;
+
+    const mem = document.createElement('div');
+    mem.className = 'memory';
+    mem.dataset.id = id;
+    mem.innerHTML = `
+      <div class="card" onclick="triggerUpload(${id})">
+        <input type="file" accept="image/*" class="file-input" id="file-${id}" onchange="loadPhoto(event,${id})">
+        <div class="card-photo" id="photo-${id}">
+          <div class="upload-placeholder">
+            <div class="upload-icon">＋</div>
+            <span class="upload-text">Tap to add photo</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="card-label">Chapter ${chapterLabel}</p>
+          <h2 class="card-title" contenteditable="true" title="Click to edit">Our Memory</h2>
+          <p class="card-desc" contenteditable="true" title="Click to edit">Write something beautiful about this moment…</p>
+        </div>
+      </div>
+      <div class="node"><div class="node-dot"></div></div>
+      <div class="date-side" contenteditable="true" title="Click to edit">Date</div>
+    `;
+
+    const addWrap = document.getElementById('add-wrap');
+    addWrap.parentNode.insertBefore(mem, addWrap);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        mem.classList.add('visible');
+        observer.observe(mem);
+        mem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+  }
+
+  // Toast notification
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.memory, #end-flourish, #add-wrap').forEach(el => observer.observe(el));
+
+  // Particles
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `left:${Math.random()*100}%;top:${80+Math.random()*40}vh;--dur:${10+Math.random()*14}s;--delay:${Math.random()*12}s;--dx:${(Math.random()-.5)*60}px;`;
+    container.appendChild(p);
+  }
+</script>
+</body>
+</html>
